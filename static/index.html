@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>API接口文档智能查询与测试助手</title>
+    <link rel="stylesheet" href="/static/style.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <div class="brand-lockup">
+          <div class="brand-mark" aria-hidden="true">API</div>
+          <div>
+            <p class="eyebrow">Local Agent Workbench</p>
+            <h1>API接口文档智能查询与测试助手</h1>
+          </div>
+        </div>
+        <div class="status-strip">
+          <span class="status-pill"><span class="status-dot"></span><span id="modelStatus">模型检测中</span></span>
+          <span id="docCount" class="status-pill status-pill-alt">0 个接口</span>
+        </div>
+      </header>
+
+      <main class="workspace">
+        <aside class="sidebar">
+          <section class="panel knowledge-panel">
+            <div class="panel-title">
+              <span>接口知识库</span>
+              <button id="refreshBtn" class="icon-btn" title="刷新接口">
+                <span aria-hidden="true">↻</span>
+              </button>
+            </div>
+            <label class="field-label" for="searchInput">搜索</label>
+            <input id="searchInput" class="input" type="search" placeholder="座位、取件码、POST..." />
+            <div id="endpointList" class="endpoint-list"></div>
+          </section>
+          <section class="metrics-grid">
+            <div class="metric">
+              <span class="metric-value" id="metricApis">0</span>
+              <span class="metric-label">接口</span>
+            </div>
+            <div class="metric">
+              <span class="metric-value">4</span>
+              <span class="metric-label">节点</span>
+            </div>
+            <div class="metric">
+              <span class="metric-value">2</span>
+              <span class="metric-label">模型模式</span>
+            </div>
+          </section>
+        </aside>
+
+        <section class="main-panel">
+          <nav class="tabs" aria-label="工作区">
+            <button class="tab active" data-tab="chat"><span>CHAT</span>对话</button>
+            <button class="tab" data-tab="tester"><span>HTTP</span>测试台</button>
+            <button class="tab" data-tab="code"><span>CODE</span>代码</button>
+          </nav>
+
+          <section id="chatTab" class="tab-pane active">
+            <div id="chatLog" class="chat-log"></div>
+            <div class="quick-prompts">
+              <button data-prompt="自习室座位接口需要哪些参数？">座位参数</button>
+              <button data-prompt="失物招领智能匹配接口怎么测试？">匹配测试</button>
+              <button data-prompt="帮我生成查询快递接口的 curl 示例">curl 示例</button>
+            </div>
+            <form id="chatForm" class="composer">
+              <textarea id="chatInput" rows="3" placeholder="输入接口问题、测试目标或代码示例需求"></textarea>
+              <button class="send-btn" type="submit" title="发送">
+                <span aria-hidden="true">SEND</span>
+                <span>发送</span>
+              </button>
+            </form>
+          </section>
+
+          <section id="testerTab" class="tab-pane">
+            <div class="tester-grid">
+              <div class="field-row">
+                <label class="field-label" for="methodSelect">方法</label>
+                <select id="methodSelect" class="select">
+                  <option>GET</option>
+                  <option>POST</option>
+                  <option>PUT</option>
+                  <option>PATCH</option>
+                  <option>DELETE</option>
+                </select>
+              </div>
+              <div class="field-row wide">
+                <label class="field-label" for="urlInput">URL</label>
+                <input id="urlInput" class="input" value="http://127.0.0.1:8765/api/docs" />
+              </div>
+            </div>
+            <label class="field-label" for="bodyInput">Body</label>
+            <textarea id="bodyInput" class="mono-area" rows="8">{}</textarea>
+            <button id="runTestBtn" class="tool-btn" type="button">
+              <span aria-hidden="true">RUN</span>
+              <span>执行</span>
+            </button>
+            <pre id="testOutput" class="output-box"></pre>
+          </section>
+
+          <section id="codeTab" class="tab-pane">
+            <div class="code-controls">
+              <select id="endpointSelect" class="select"></select>
+              <div class="segmented">
+                <button class="segment active" data-lang="curl">curl</button>
+                <button class="segment" data-lang="python">Python</button>
+                <button class="segment" data-lang="javascript">JS</button>
+              </div>
+            </div>
+            <pre id="codeOutput" class="output-box code-box"></pre>
+          </section>
+        </section>
+
+        <aside class="rightbar">
+          <section class="panel profile-panel">
+            <div class="panel-title">Agent 状态</div>
+            <div class="profile-grid">
+              <span>角色</span><strong>API 文档助手</strong>
+              <span>知识源</span><strong>本地接口库</strong>
+              <span>测试边界</span><strong>本机白名单</strong>
+            </div>
+          </section>
+          <section class="panel">
+            <div class="panel-title">工作流追踪</div>
+            <ol id="traceList" class="trace-list"></ol>
+          </section>
+          <section class="panel">
+            <div class="panel-title">引用接口</div>
+            <div id="referenceList" class="reference-list"></div>
+          </section>
+          <section class="boundary">
+            <strong>边界</strong>
+            <span>默认仅测试本机 HTTP 地址；模型回答只依据已载入文档。</span>
+          </section>
+        </aside>
+      </main>
+    </div>
+    <script src="/static/app.js"></script>
+  </body>
+</html>
