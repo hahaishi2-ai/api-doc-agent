@@ -1,0 +1,196 @@
+{
+  "project": "校园服务中台 API 文档知识库",
+  "version": "2026.06",
+  "description": "用于课程演示的 API 文档样例，覆盖失物招领、食堂、自习室、快递和反馈等校园场景。",
+  "endpoints": [
+    {
+      "id": "lost_found_list",
+      "method": "GET",
+      "path": "/v1/lost-found/items",
+      "name": "查询失物招领列表",
+      "summary": "按关键词、分类、地点和状态分页查询失物招领信息。",
+      "tags": ["失物招领", "搜索", "分页"],
+      "auth": "Bearer Token，可匿名查看公开列表",
+      "version": "v1.4",
+      "parameters": [
+        {"name": "keyword", "type": "string", "required": false, "description": "搜索标题、描述、地点或物品特征"},
+        {"name": "category", "type": "string", "required": false, "description": "物品分类，例如 card、book、digital、clothes"},
+        {"name": "status", "type": "string", "required": false, "description": "lost 或 found"},
+        {"name": "page", "type": "integer", "required": false, "description": "页码，从 1 开始"},
+        {"name": "page_size", "type": "integer", "required": false, "description": "每页数量，最大 50"}
+      ],
+      "request_body": {"description": "无请求体", "schema": {}},
+      "responses": {
+        "200": {"description": "返回分页结果", "schema": {"items": "array", "total": "integer", "page": "integer"}},
+        "400": {"description": "分页参数或状态值不合法"}
+      },
+      "examples": {
+        "query": {"keyword": "校园卡", "status": "found", "page": 1},
+        "curl": "curl 'http://localhost:8765/mock-api/v1/lost-found/items?keyword=%E6%A0%A1%E5%9B%AD%E5%8D%A1&status=found&page=1' -H 'Authorization: Bearer <token>'"
+      },
+      "changes": ["v1.4 新增 category 过滤", "v1.3 将 page_size 最大值调整为 50"]
+    },
+    {
+      "id": "lost_found_match",
+      "method": "POST",
+      "path": "/v1/lost-found/match",
+      "name": "失物招领智能匹配",
+      "summary": "根据物品描述、地点和时间自动匹配可能相关的失物或招领记录。",
+      "tags": ["失物招领", "智能匹配", "AI"],
+      "auth": "Bearer Token",
+      "version": "v1.2",
+      "parameters": [],
+      "request_body": {
+        "description": "待匹配物品信息",
+        "schema": {
+          "description": "string，必填，物品外观与关键特征",
+          "location": "string，选填，丢失或拾取地点",
+          "happened_at": "string，选填，ISO 日期时间",
+          "status": "string，必填，lost 或 found"
+        }
+      },
+      "responses": {
+        "200": {"description": "返回候选匹配项和相似度", "schema": {"matches": "array", "confidence": "number"}},
+        "422": {"description": "description 或 status 缺失"}
+      },
+      "examples": {
+        "json_body": {"description": "蓝色卡套的校园卡，姓名末尾是彬", "location": "图书馆二楼", "status": "lost"},
+        "curl": "curl -X POST 'http://localhost:8765/mock-api/v1/lost-found/match' -H 'Authorization: Bearer <token>' -H 'Content-Type: application/json' -d '{\"description\":\"蓝色卡套的校园卡\",\"location\":\"图书馆二楼\",\"status\":\"lost\"}'"
+      },
+      "changes": ["v1.2 新增 confidence 分数", "v1.1 支持地点相似度加权"]
+    },
+    {
+      "id": "canteen_menu",
+      "method": "GET",
+      "path": "/v1/canteen/menus",
+      "name": "查询食堂菜品与营养信息",
+      "summary": "查询指定食堂、餐段和日期的菜品列表、价格、热量与营养标签。",
+      "tags": ["智慧食堂", "营养分析", "查询"],
+      "auth": "匿名可读",
+      "version": "v1.1",
+      "parameters": [
+        {"name": "canteen_id", "type": "string", "required": true, "description": "食堂编号，例如 syu-a"},
+        {"name": "meal", "type": "string", "required": true, "description": "breakfast、lunch 或 dinner"},
+        {"name": "date", "type": "string", "required": false, "description": "日期，格式 YYYY-MM-DD，默认今天"}
+      ],
+      "request_body": {"description": "无请求体", "schema": {}},
+      "responses": {
+        "200": {"description": "菜品和营养信息", "schema": {"dishes": "array", "calorie_total": "integer"}},
+        "404": {"description": "食堂或餐段不存在"}
+      },
+      "examples": {
+        "query": {"canteen_id": "syu-a", "meal": "lunch"},
+        "curl": "curl 'http://localhost:8765/mock-api/v1/canteen/menus?canteen_id=syu-a&meal=lunch'"
+      },
+      "changes": ["v1.1 新增 calorie_total 字段"]
+    },
+    {
+      "id": "study_room_seats",
+      "method": "GET",
+      "path": "/v1/study-rooms/seats",
+      "name": "查询自习室座位状态",
+      "summary": "返回楼栋、楼层和房间维度的座位实时状态，支持热门时段统计。",
+      "tags": ["自习室", "座位预约", "实时状态"],
+      "auth": "Bearer Token",
+      "version": "v1.5",
+      "parameters": [
+        {"name": "building", "type": "string", "required": true, "description": "楼栋编号"},
+        {"name": "room", "type": "string", "required": false, "description": "房间号，不填则返回整层"},
+        {"name": "include_stats", "type": "boolean", "required": false, "description": "是否返回热门时段与使用率统计"}
+      ],
+      "request_body": {"description": "无请求体", "schema": {}},
+      "responses": {
+        "200": {"description": "座位状态矩阵", "schema": {"seats": "array", "occupied_rate": "number"}},
+        "401": {"description": "未登录或 token 过期"}
+      },
+      "examples": {
+        "query": {"building": "library", "room": "203", "include_stats": true},
+        "curl": "curl 'http://localhost:8765/mock-api/v1/study-rooms/seats?building=library&room=203&include_stats=true' -H 'Authorization: Bearer <token>'"
+      },
+      "changes": ["v1.5 新增 include_stats", "v1.4 优化实时状态缓存"]
+    },
+    {
+      "id": "reservation_create",
+      "method": "POST",
+      "path": "/v1/reservations",
+      "name": "创建自习室座位预约",
+      "summary": "为当前学生创建指定时段的座位预约，支持冲突检测和签到二维码生成。",
+      "tags": ["自习室", "预约", "签到"],
+      "auth": "Bearer Token",
+      "version": "v1.3",
+      "parameters": [],
+      "request_body": {
+        "description": "预约信息",
+        "schema": {
+          "seat_id": "string，必填，座位编号",
+          "start_time": "string，必填，ISO 日期时间",
+          "end_time": "string，必填，ISO 日期时间",
+          "remind_minutes": "integer，选填，提前提醒分钟数"
+        }
+      },
+      "responses": {
+        "201": {"description": "预约创建成功", "schema": {"reservation_id": "string", "checkin_qr": "string"}},
+        "409": {"description": "座位时段冲突"}
+      },
+      "examples": {
+        "json_body": {"seat_id": "LIB-203-A08", "start_time": "2026-06-10T19:00:00+08:00", "end_time": "2026-06-10T21:00:00+08:00"},
+        "curl": "curl -X POST 'http://localhost:8765/mock-api/v1/reservations' -H 'Authorization: Bearer <token>' -H 'Content-Type: application/json' -d '{\"seat_id\":\"LIB-203-A08\",\"start_time\":\"2026-06-10T19:00:00+08:00\",\"end_time\":\"2026-06-10T21:00:00+08:00\"}'"
+      },
+      "changes": ["v1.3 新增 remind_minutes", "v1.2 返回 checkin_qr"]
+    },
+    {
+      "id": "express_packages",
+      "method": "GET",
+      "path": "/v1/express/packages",
+      "name": "查询校园快递状态",
+      "summary": "按手机号后四位、取件码或站点查询快递到站、排队和超时状态。",
+      "tags": ["校园快递", "取件码", "导航"],
+      "auth": "Bearer Token",
+      "version": "v1.0",
+      "parameters": [
+        {"name": "pickup_code", "type": "string", "required": false, "description": "取件码"},
+        {"name": "phone_tail", "type": "string", "required": false, "description": "手机号后四位"},
+        {"name": "station_id", "type": "string", "required": false, "description": "驿站编号"}
+      ],
+      "request_body": {"description": "无请求体", "schema": {}},
+      "responses": {
+        "200": {"description": "快递列表和站点繁忙度", "schema": {"packages": "array", "station_load": "number"}},
+        "403": {"description": "无权查看他人快递"}
+      },
+      "examples": {
+        "query": {"phone_tail": "1024", "station_id": "east-gate"},
+        "curl": "curl 'http://localhost:8765/mock-api/v1/express/packages?phone_tail=1024&station_id=east-gate' -H 'Authorization: Bearer <token>'"
+      },
+      "changes": ["v1.0 首次发布"]
+    },
+    {
+      "id": "feedback_create",
+      "method": "POST",
+      "path": "/v1/feedback",
+      "name": "提交校园服务反馈",
+      "summary": "提交服务问题、建议或投诉，并返回工单编号和预计处理时间。",
+      "tags": ["反馈", "工单", "服务治理"],
+      "auth": "Bearer Token",
+      "version": "v1.1",
+      "parameters": [],
+      "request_body": {
+        "description": "反馈内容",
+        "schema": {
+          "service": "string，必填，canteen/study_room/express/lost_found",
+          "content": "string，必填，反馈正文，至少 10 个字符",
+          "images": "array，选填，图片 URL 列表",
+          "contact": "string，选填，联系方式"
+        }
+      },
+      "responses": {
+        "201": {"description": "提交成功", "schema": {"ticket_id": "string", "eta_hours": "integer"}},
+        "422": {"description": "反馈正文过短或服务类型不支持"}
+      },
+      "examples": {
+        "json_body": {"service": "study_room", "content": "图书馆二楼预约后无法签到，请排查二维码状态。"},
+        "curl": "curl -X POST 'http://localhost:8765/mock-api/v1/feedback' -H 'Authorization: Bearer <token>' -H 'Content-Type: application/json' -d '{\"service\":\"study_room\",\"content\":\"图书馆二楼预约后无法签到，请排查二维码状态。\"}'"
+      },
+      "changes": ["v1.1 新增 eta_hours"]
+    }
+  ]
+}
