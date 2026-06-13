@@ -1,0 +1,23 @@
+{
+  "llm": {
+    "provider": "openai_compat",
+    "disable_llm": false,
+    "timeout_seconds": 20,
+    "openai_compat": {
+      "base_url": "http://127.0.0.1:1234/v1",
+      "model": "local-model",
+      "api_key": "lm-studio"
+    },
+    "ollama": {
+      "base_url": "http://127.0.0.1:11434",
+      "model": "qwen2.5:7b-instruct"
+    }
+  },
+  "security": {
+    "allowed_test_hosts": [
+      "localhost",
+      "127.0.0.1",
+      "::1"
+    ]
+  }
+}
